@@ -1,7 +1,9 @@
+from typing import List
 from uuid import UUID
 from motor.motor_asyncio import AsyncIOMotorClient, AsyncIOMotorDatabase
+import pymongo
 from store.db.mongo import db_client
-from store.schemas.product import ProductIn, ProductOut
+from store.schemas.product import ProductIn, ProductOut, ProductUpdate, ProductUpdateOut
 from store.core.exceptions import NotFoundException
 
 
@@ -24,6 +26,18 @@ class ProductUsecase:
             raise NotFoundException(message=f"Product not found with filter: {id}")
 
         return ProductOut(**result)
+
+    async def query(self) -> List[ProductOut]:
+        return [ProductOut(**item) async for item in self.collection.find()]
+
+    async def update(self, id: UUID, body: ProductUpdate) -> ProductOut:
+        result = await self.collection.find_one_and_update(
+            filter={"id": id},
+            update={"$set": body.model_dump(exclude_none=True)},
+            return_document=pymongo.ReturnDocument.AFTER,
+        )
+
+        return ProductUpdateOut(**result)
 
 
 product_usecase = ProductUsecase()

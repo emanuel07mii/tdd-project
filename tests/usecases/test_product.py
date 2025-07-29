@@ -1,9 +1,10 @@
+from typing import List
 from uuid import UUID
 from store.core.exceptions import NotFoundException
 
 import pytest
 from store.usecase.product import product_usecase
-from store.schemas.product import ProductOut
+from store.schemas.product import ProductOut, ProductUpdateOut
 
 
 async def test_usecases_create_should_return_success(product_in):
@@ -28,3 +29,16 @@ async def test_usecases_get_should_not_found():
         err.value.message
         == "Product not found with filter: fce6cc37-10b9-4a8e-a8b2-977df327001b"
     )
+
+
+async def test_usecases_query_should_return_success():
+    result = await product_usecase.query()
+
+    assert isinstance(result, List)
+
+
+async def test_usecases_update_should_return_success(product_id, product_up):
+    product_up.price = 9.500
+    result = await product_usecase.update(id=product_id, body=product_up)
+
+    assert isinstance(result, ProductUpdateOut)
