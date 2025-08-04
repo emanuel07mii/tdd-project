@@ -14,7 +14,7 @@ class CreateBaseModel(BaseModel):
     @model_serializer
     def set_model(self) -> dict[str, Any]:
         self_dict = dict(self)
-
+        # breakpoint()
         for key, value in self_dict.items():
             if isinstance(value, Decimal):
                 self_dict[key] = Decimal128(str(value))
