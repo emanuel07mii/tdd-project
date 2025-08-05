@@ -1,10 +1,12 @@
+import pytest
 import asyncio
 from uuid import UUID
-import pytest
+
 from store.db.mongo import db_client
 from store.schemas.product import ProductIn, ProductUpdate
-from store.usecase.product import product_usecase
+from store.usecases.product import product_usecase
 from tests.factories import product_data, products_data
+from httpx import AsyncClient, ASGITransport
 
 
 @pytest.fixture(scope="session")
@@ -27,7 +29,21 @@ async def clear_collections(mongo_client):
         if collection_name.startswith("system"):
             continue
 
-        # await mongo_client.get_database()[collection_name].delete_many({})
+        await mongo_client.get_database()[collection_name].delete_many({})
+
+
+@pytest.fixture
+async def client() -> AsyncClient:
+    from store.main import app
+
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as ac:
+        yield ac
+
+
+@pytest.fixture
+def products_url() -> str:
+    return "/products/"
 
 
 @pytest.fixture

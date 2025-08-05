@@ -3,7 +3,7 @@ from uuid import UUID
 from store.core.exceptions import NotFoundException
 
 import pytest
-from store.usecase.product import product_usecase
+from store.usecases.product import product_usecase
 from store.schemas.product import ProductOut, ProductUpdateOut
 
 
