@@ -58,3 +58,25 @@ async def test_controller_query_should_return_success(client, products_url):
     assert response.status_code == status.HTTP_200_OK
     assert isinstance(response.json(), List)
     assert len(response.json()) > 1
+
+
+async def test_controller_patch_should_return_success(
+    client, products_url, product_inserted
+):
+    response = await client.patch(
+        f"{products_url}{product_inserted.id}", json={"price": "8.300"}
+    )
+
+    content = response.json()
+
+    del content["created_at"]
+    del content["updated_at"]
+
+    assert response.status_code == status.HTTP_200_OK
+    assert content == {
+        "id": str(product_inserted.id),
+        "name": "Iphone 14 Pro Max",
+        "quantity": 10,
+        "price": "8.300",
+        "status": True,
+    }
