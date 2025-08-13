@@ -8,6 +8,7 @@ from store.schemas.product import ProductIn, ProductOut, ProductUpdate, ProductU
 from store.core.exceptions import NotFoundException
 from fastapi import HTTPException, status
 from pymongo.errors import DuplicateKeyError, PyMongoError
+from datetime import datetime, timezone
 
 
 class ProductUsecase:
@@ -45,9 +46,11 @@ class ProductUsecase:
         return [ProductOut(**item) async for item in self.collection.find()]
 
     async def update(self, id: UUID, body: ProductUpdate) -> ProductUpdateOut:
+        data = body.model_dump(exclude_none=True)
+        data["updated_at"] = datetime.now(timezone.utc)
         result = await self.collection.find_one_and_update(
             filter={"id": id},
-            update={"$set": body.model_dump(exclude_none=True)},
+            update={"$set": data},
             return_document=pymongo.ReturnDocument.AFTER,
         )
 
