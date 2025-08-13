@@ -6,6 +6,8 @@ from store.db.mongo import db_client
 from store.models.product import ProductModel
 from store.schemas.product import ProductIn, ProductOut, ProductUpdate, ProductUpdateOut
 from store.core.exceptions import NotFoundException
+from fastapi import HTTPException, status
+from pymongo.errors import DuplicateKeyError, PyMongoError
 
 
 class ProductUsecase:
@@ -16,7 +18,18 @@ class ProductUsecase:
 
     async def create(self, body: ProductIn) -> ProductOut:
         product_model = ProductModel(**body.model_dump())
-        await self.collection.insert_one(product_model.model_dump())
+        try:
+            await self.collection.insert_one(product_model.model_dump())
+        except DuplicateKeyError:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Erro de integridade: Produto duplicado ou dados inválidos",
+            )
+        except PyMongoError:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Erro ao inserir no banco",
+            )
 
         return ProductOut(**product_model.model_dump())
 
